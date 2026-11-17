@@ -5,9 +5,10 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 RUN yarn install
 
-COPY prisma ./prisma
 COPY . .
+
+RUN yarn prisma generate && yarn build
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "yarn prisma generate && yarn prisma migrate deploy && yarn dev"]
+CMD ["sh", "-c", "yarn prisma migrate deploy && yarn start"]
