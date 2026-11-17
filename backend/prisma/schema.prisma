@@ -1,0 +1,82 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String          @id @default(uuid())
+  name      String
+  email     String          @unique
+  password  String
+  cpf       String          @unique
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+  profile   UserProfile?
+  series    WorkoutSeries[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  height    Float
+  weight    Float
+  age       Int
+  gender    String
+  goal      String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model Exercise {
+  id               String        @id @default(uuid())
+  externalId       String        @unique @map("external_id")
+  name             String
+  namePt           String?   @map("name_pt")
+  category         String
+  level            String
+  force            String?
+  mechanic         String?
+  equipment        String?
+  primaryMuscles   String[]      @map("primary_muscles")
+  secondaryMuscles String[]      @map("secondary_muscles")
+  instructions     String[]
+  images           String[]
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+  workoutItems     WorkoutItem[]
+
+  @@map("exercises")
+}
+
+model WorkoutSeries {
+  id        String        @id @default(uuid())
+  userId    String        @map("user_id")
+  name      String
+  dayOfWeek String[]      @map("day_of_week")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     WorkoutItem[]
+
+  @@map("workout_series")
+}
+
+model WorkoutItem {
+  id              String        @id @default(uuid())
+  workoutSeriesId String        @map("workout_series_id")
+  exerciseId      String        @map("exercise_id")
+  sets            Int
+  reps            Int
+  restSeconds     Int           @map("rest_seconds")
+  workoutSeries   WorkoutSeries @relation(fields: [workoutSeriesId], references: [id], onDelete: Cascade)
+  exercise        Exercise      @relation(fields: [exerciseId], references: [id])
+
+  @@map("workout_items")
+}
